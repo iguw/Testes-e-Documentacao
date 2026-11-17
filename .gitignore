@@ -1,0 +1,7 @@
+venv/
+__pycache__/
+*.pyc
+.env
+.vscode/
+tarefas.db
+.pytest_cache/

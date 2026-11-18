@@ -17,12 +17,11 @@ app = FastAPI(
 
 @app.get("/", summary="Verifica se a API esta no ar")
 def raiz():
-    """Retorna uma mensagem simples para testar o servidor."""
+    """Retorna uma mensagem simples para testar o servidor"""
     return {"mensagem": "API de Tarefas no ar!"}
 
 
-# usuarios e login
-
+#usuarios e login
 @app.post(
     "/usuarios",
     response_model=UsuarioOut,
@@ -32,7 +31,7 @@ def raiz():
     responses={400: {"description": "E-mail já cadastrado"}},
 )
 def criar_usuario(dados: UsuarioCreate, db: Session = Depends(get_db)):
-    """Cria um usuario com e-mail e senha. A senha e salva com hash."""
+    """Cria um usuario com email e senha, a senha e salva com hash"""
     existe = db.query(UsuarioModel).filter(UsuarioModel.email == dados.email).first()
     if existe:
         raise HTTPException(status_code=400, detail="E-mail já cadastrado")
@@ -52,7 +51,7 @@ def criar_usuario(dados: UsuarioCreate, db: Session = Depends(get_db)):
     responses={401: {"description": "E-mail ou senha incorretos"}},
 )
 def login(form: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    """Recebe e-mail (no campo username) e senha e devolve um token JWT."""
+    """Recebe email e senha e devolve um token jwt"""
     usuario = db.query(UsuarioModel).filter(UsuarioModel.email == form.username).first()
     if usuario is None or not verificar_senha(form.password, usuario.senha_hash):
         raise HTTPException(status_code=401, detail="E-mail ou senha incorretos")
@@ -61,8 +60,7 @@ def login(form: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get
     return {"access_token": token, "token_type": "bearer"}
 
 
-# tarefas: GET publico
-
+# tarefas, get publico
 @app.get(
     "/tarefas",
     response_model=list[Tarefa],
@@ -70,7 +68,7 @@ def login(form: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get
     summary="Lista as tarefas",
 )
 def listar_tarefas(concluida: Optional[bool] = None, db: Session = Depends(get_db)):
-    """Lista todas as tarefas. Use ?concluida=true ou false para filtrar."""
+    """Lista todas as tarefas, Use ?concluida=true ou false para filtrar"""
     query = db.query(TarefaModel)
     if concluida is not None:
         query = query.filter(TarefaModel.concluida == concluida)
@@ -85,15 +83,14 @@ def listar_tarefas(concluida: Optional[bool] = None, db: Session = Depends(get_d
     responses={404: {"description": "Tarefa não encontrada"}},
 )
 def buscar_tarefa(tarefa_id: int, db: Session = Depends(get_db)):
-    """Retorna uma tarefa pelo ID."""
+    """Retorna uma tarefa pelo id"""
     tarefa = db.query(TarefaModel).filter(TarefaModel.id == tarefa_id).first()
     if tarefa is None:
         raise HTTPException(status_code=404, detail="Tarefa não encontrada")
     return tarefa
 
 
-# tarefas: POST, PUT e DELETE precisam de token
-
+# tarefas, post, put e delete precisam de token
 @app.post(
     "/tarefas",
     response_model=Tarefa,
@@ -107,7 +104,7 @@ def criar_tarefa(
     db: Session = Depends(get_db),
     usuario: UsuarioModel = Depends(usuario_atual),
 ):
-    """Cria uma tarefa nova. Precisa de token."""
+    """Cria uma tarefa nova, Precisa de token"""
     nova = TarefaModel(
         titulo=dados.titulo,
         descricao=dados.descricao,
@@ -135,7 +132,7 @@ def atualizar_tarefa(
     db: Session = Depends(get_db),
     usuario: UsuarioModel = Depends(usuario_atual),
 ):
-    """Atualiza os dados de uma tarefa. Precisa de token."""
+    """Atualiza os dados de uma tarefa, Precisa de token"""
     tarefa = db.query(TarefaModel).filter(TarefaModel.id == tarefa_id).first()
     if tarefa is None:
         raise HTTPException(status_code=404, detail="Tarefa não encontrada")
@@ -164,7 +161,7 @@ def remover_tarefa(
     db: Session = Depends(get_db),
     usuario: UsuarioModel = Depends(usuario_atual),
 ):
-    """Apaga uma tarefa pelo ID. Precisa de token."""
+    """Apaga uma tarefa pelo id, Precisa de token"""
     tarefa = db.query(TarefaModel).filter(TarefaModel.id == tarefa_id).first()
     if tarefa is None:
         raise HTTPException(status_code=404, detail="Tarefa não encontrada")
